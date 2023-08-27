@@ -1,0 +1,11 @@
+/.pythonlibs
+
+/.upm
+
+*.lock
+
+*.toml
+
+*.nix
+
+*.replit
