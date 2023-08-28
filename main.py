@@ -1,15 +1,10 @@
 import os
 import requests
-from urllib.parse import urlparse, urlunparse
+from urllib.parse import urlparse
+from dotenv import load_dotenv
 
 
-API_KEY = os.environ['API_KEY']
-headers = {
-        "Authorization": "Bearer {}".format(API_KEY)
-    } 
-
-
-def shorten_link(API_KEY, long_link):
+def shorten_link(headers, long_link):
     payload = {
         'long_url': long_link
     }
@@ -19,34 +14,37 @@ def shorten_link(API_KEY, long_link):
     return response.json()['link']
 
 
-def count_clicks(API_KEY, user_link):
-    parsed = urlparse(user_link)
-    bitlink = parsed.netloc + parsed.path
+def count_click(headers, user_bitlink):
+    bitlink = urlparse(user_bitlink)
     payload = {
-        'bitlink': bitlink,
+        'bitlink': '{bitlink.netloc}{bitlink.path}',
         "units": -1
     }
-    url = 'https://api-ssl.bitly.com/v4/bitlinks/{}/clicks/summary'.format(bitlink)
+    url = f'https://api-ssl.bitly.com/v4/bitlinks/{bitlink.netloc}{bitlink.path}/clicks/summary'
     response = requests.get(url, headers=headers, params=payload)
     response.raise_for_status()
     return response.json()['total_clicks']
 
 
-def is_bitlink(user_link):
-    parsed = urlparse(user_link)
-    bitlink = parsed.netloc + parsed.path
-    url = 'https://api-ssl.bitly.com/v4/bitlinks/{}'.format(bitlink)
+def is_bitlink(headers, user_link):
+    bitlink = urlparse(user_link)
+    url = f'https://api-ssl.bitly.com/v4/bitlinks/{bitlink.netloc}{bitlink.path}'
     response = requests.get(url, headers=headers)
     return response.ok
 
 
 def main():
+    load_dotenv()
+    BIT_API_KEY = os.environ['BIT_API_KEY']
+    headers = {
+        "Authorization": "Bearer {}".format(BIT_API_KEY)
+    } 
     try:
         user_link = input('Введите ссылку: ')
-        if is_bitlink(user_link):
-            return 'Количество посещений: ' + str(count_clicks(API_KEY, user_link))
+        if is_bitlink(headers, user_link):
+            return f'Количество посещений: {count_click(headers, user_link)}'
         else:
-            return 'Сокращенная ссылка: ' + shorten_link(API_KEY, user_link)
+            return f'Сокращенная ссылка: {shorten_link(headers, user_link)}'
     except requests.exceptions.HTTPError as error:
         return "Can't get data from server:\n{0}".format(error)
 
