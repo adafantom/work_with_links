@@ -17,7 +17,6 @@ def shorten_link(headers, long_link):
 def count_click(headers, user_bitlink):
     bitlink = urlparse(user_bitlink)
     payload = {
-        'bitlink': '{bitlink.netloc}{bitlink.path}',
         "units": -1
     }
     url = f'https://api-ssl.bitly.com/v4/bitlinks/{bitlink.netloc}{bitlink.path}/clicks/summary'
@@ -35,9 +34,9 @@ def is_bitlink(headers, user_link):
 
 def main():
     load_dotenv()
-    BIT_API_KEY = os.environ['BIT_API_KEY']
+    bitly_api_key = os.environ['BITLY_API_KEY']
     headers = {
-        "Authorization": "Bearer {}".format(BIT_API_KEY)
+        "Authorization": "Bearer {}".format(bitly_api_key)
     } 
     try:
         user_link = input('Введите ссылку: ')
